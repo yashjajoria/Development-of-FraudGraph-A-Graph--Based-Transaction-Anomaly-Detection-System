@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
+import { ApiError } from "@/services/api/client";
 import { login } from "@/services/api/copilot";
 import { useAuth } from "@/store/authStore";
 
@@ -8,7 +9,7 @@ export function Login() {
   const doLogin = useAuth((s) => s.login);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr("");
-    try { const r = await login(u, p); doLogin(r.access_token, u, r.role); } catch { setErr("Invalid username or password"); }
+    try { const r = await login(u, p); doLogin(r.access_token, u, r.role); } catch (e) { setErr(e instanceof ApiError && e.status === 401 ? "Invalid username or password" : "Cannot reach the FraudGraph API. Is the backend running on port 8010?"); }
   };
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
