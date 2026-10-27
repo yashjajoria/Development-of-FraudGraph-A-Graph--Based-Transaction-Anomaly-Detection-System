@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.1"
     llm_timeout: float = 30.0
+    jwt_secret: str = "dev-secret-change-me"  # MUST be overridden outside dev
+    jwt_hours: int = 12
+    demo_password: str = "fraudgraph"  # demo auth only: users analyst / admin / viewer
+    rate_limit_per_min: int = 20
+    max_input_chars: int = 2000
+    cors_origins: str = "http://localhost:5173"
 
 
 settings = Settings()
