@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.1"
     llm_timeout: float = 30.0
+    app_env: str = "dev"  # set APP_ENV=production to enforce secrets
     jwt_secret: str = "dev-secret-change-me"  # MUST be overridden outside dev
     jwt_hours: int = 12
     demo_password: str = "fraudgraph"  # demo auth only: users analyst / admin / viewer
@@ -28,3 +29,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+if settings.app_env == "production" and (
+    settings.jwt_secret == "dev-secret-change-me" or settings.demo_password == "fraudgraph"
+):
+    raise RuntimeError("Set JWT_SECRET and DEMO_PASSWORD before running with APP_ENV=production")
