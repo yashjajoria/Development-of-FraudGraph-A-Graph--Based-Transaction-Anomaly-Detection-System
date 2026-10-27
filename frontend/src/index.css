@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { /* light */
+  --bg: 248 250 252; --card: 255 255 255; --line: 226 232 240; --fg: 15 23 42; --muted: 100 116 139;
+}
+.dark { /* dark-first: #0B1120 / #111827 / #1F2937 */
+  --bg: 11 17 32; --card: 17 24 39; --line: 31 41 55; --fg: 226 232 240; --muted: 148 163 184;
+}
+body { @apply bg-bg text-fg font-sans antialiased; }
+.scroll-thin::-webkit-scrollbar { width: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 9999px; }
+.md p { margin: .25rem 0; } .md ul { list-style: disc; padding-left: 1.1rem; } .md ol { list-style: decimal; padding-left: 1.1rem; }
+.md table { width: 100%; font-size: .75rem; border-collapse: collapse; } .md th, .md td { border-bottom: 1px solid rgb(var(--line)); padding: 2px 6px; text-align: left; }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,.55); } 70%,100% { box-shadow: 0 0 0 14px rgba(99,102,241,0); } }
+.pulse-ring { animation: ring 2.4s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .pulse-ring { animation: none; } }
