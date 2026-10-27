@@ -25,7 +25,7 @@ def numbers(blob: str) -> list[float]:
 def grounding(answer: str, question: str, results_blob: str) -> list[str]:
     """Return ungrounded items: IDs/amounts in the answer that no tool result (or the question) contains."""
     bad = [i for i in set(ID_RE.findall(answer)) if i not in results_blob and i not in question]
-    nums = numbers(results_blob)
+    nums = numbers(results_blob) + numbers(question)  # numbers the analyst typed are fair game
     for m in AMT_RE.finditer(answer):
         v = float(m.group(1).replace(",", "")) * MULT[(m.group(2) or "").lower() or None]
         if v and not any(abs(n - v) <= max(1.0, 0.01 * v) for n in nums):
@@ -41,7 +41,7 @@ async def one(item: dict, provider) -> dict:
         called.append(name)
         try:
             r = real(name, args, confirmed)
-            blobs.append(json.dumps(r, default=str))
+            blobs.append(json.dumps(r, default=str, ensure_ascii=False))
             return r
         except Exception:
             raise

@@ -2,11 +2,11 @@
  "summary": {
   "provider": "GroqProvider",
   "questions": 20,
-  "tool_selection_accuracy": 0.5,
-  "grounded_answers": 1.0,
-  "key_facts_present": 0.35,
-  "errors": 16,
-  "avg_latency_s": 2.15
+  "tool_selection_accuracy": 1.0,
+  "grounded_answers": 0.85,
+  "key_facts_present": 0.85,
+  "errors": 0,
+  "avg_latency_s": 1.91
  },
  "rows": [
   {
@@ -17,9 +17,9 @@
    "tool_ok": true,
    "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.47,
+   "latency_s": 1.42,
    "error": null,
-   "answer": "**Today's fraud activity:**  \n- **Flagged accounts:** 6  \n- **Fraud rate:** 2.83\u202f% of transactions  \n- **Amount at risk:** \u20b912,19,465.27  \n- **Active alerts:** 17  \n\nThese figures come from the dashboard stats for today."
+   "answer": "**Today's fraud activity:** 6 accounts are flagged, representing a\u202f2.83\u202f% fraud rate. The amount at risk is\u202f\u20b912,19,465.27, and there are\u202f17\u202factive alerts. (Based on dashboard stats)"
   },
   {
    "q": "Why is ACC_9001 risky?",
@@ -29,9 +29,9 @@
    "tool_ok": true,
    "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.77,
+   "latency_s": 3.22,
    "error": null,
-   "answer": "**ACC_9001 is flagged as\u202fHigh\u202frisk (score\u202f70).**  \n\n- **Money\u2011laundering cycle (CYCLE rule)** \u2013 45\u202fpoints: the account participates in a loop\u202fACC_9004\u202f\u2192\u202fACC_9001\u202f\u2192\u202fACC_9002\u202f\u2192\u202fACC_9003\u202f\u2192\u202fACC_9004.  \n- **Shared device (SHARED_DEVICE rule)** \u2013 25\u202fpoints: the same device\u202fDEV_77\u202fis also used by ACC_9002,"
+   "answer": "**ACC_9001 is flagged as High\u2011risk (score\u202f70).**  \n- **Money\u2011laundering cycle** (CYCLE rule) contributes 45 points: it participates in a loop\u202fACC_9004\u202f\u2192\u202fACC_9001\u202f\u2192\u202fACC_9002\u202f\u2192\u202fACC_9003\u202f\u2192\u202fACC_9004.  \n- **Shared device** (SHARED_DEVICE rule) adds 25 points: the same device\u202fDEV_77\u202fis also used by ACC_90"
   },
   {
    "q": "Which accounts sent money to ACC_9010 in the last 7 days?",
@@ -41,34 +41,33 @@
    "tool_ok": true,
    "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.63,
+   "latency_s": 1.9,
    "error": null,
-   "answer": "No accounts sent money to **ACC_9010** in the last\u202f7\u202fdays (2026\u201110\u201120\u202fto\u202f2026\u201110\u201127). No matching transactions were found."
+   "answer": "No money was sent to **ACC_9010** in the last\u202f7\u202fdays (Oct\u202f20\u202f\u2013\u202fOct\u202f27,\u202f2026). The transaction search returned zero matching records."
   },
   {
    "q": "Show me the 5 riskiest accounts",
-   "called": [],
-   "tool_ok": false,
-   "facts_missing": [
-    "ACC_9020"
+   "called": [
+    "get_top_risky_accounts"
    ],
+   "tool_ok": true,
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.74,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.6,
+   "error": null,
+   "answer": "**Top\u202f5 riskiest accounts**\n\n| Rank | Account ID | Risk Level | Risk Score | Triggering Rules |\n|------|------------|------------|------------|------------------|\n| 1 | **ACC_9020** | Critical | 80 | FAN_OUT, HIGH_VALUE |\n| 2 | **ACC_9001** | High | 70 | SHARED_DEVICE, CYCLE |\n| 3 | **ACC_9002** | H"
   },
   {
    "q": "Find money laundering cycles",
-   "called": [],
-   "tool_ok": false,
-   "facts_missing": [
-    "ACC_9001",
-    "ACC_9004"
+   "called": [
+    "find_cycles"
    ],
+   "tool_ok": true,
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.72,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.48,
+   "error": null,
+   "answer": "**Answer:** A laundering cycle was found involving **ACC_9001 \u2192 ACC_9002 \u2192 ACC_9003 \u2192 ACC_9004 \u2192 ACC_9001**, 4 hops, moving a total of **\u20b9584,977**.\n\n**Evidence:** The `find_cycles` query returned one cycle of length\u202f4 with the accounts listed above and a total amount of \u20b9584,977."
   },
   {
    "q": "Is ACC_9002 part of a fraud ring?",
@@ -76,39 +75,35 @@
     "get_community"
    ],
    "tool_ok": true,
-   "facts_missing": [
-    "ACC_9002"
-   ],
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 2.53,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.3,
+   "error": null,
+   "answer": "**Yes \u2013 ACC_9002 belongs to a fraud ring.**  \n\n- It is listed as a member of **COM_1**, a circular laundering ring with 4 accounts.  \n- The ring moved **\u20b95,84,977** internally and has an average risk score of **70** (High).  \n- ACC_9002\u2019s own risk level is **High**, flagged by the **SHARED_DEVICE** "
   },
   {
    "q": "Trace the money flow from ACC_9001 to ACC_9003",
-   "called": [],
-   "tool_ok": false,
-   "facts_missing": [
-    "ACC_9001",
-    "ACC_9003"
+   "called": [
+    "find_money_path"
    ],
+   "tool_ok": true,
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.72,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.7,
+   "error": null,
+   "answer": "**Money\u2011flow path:**  \nACC_9001 \u2192 ACC_9002 \u2192 ACC_9003 (2 hops).  \n\n- ACC_9001 sent **\u20b91,46,203** to ACC_9002 (3 transactions).  \n- ACC_9002 forwarded **\u20b91,46,383** to ACC_9003 (3 transactions).  \n\n**Evidence:** Path data returned by `find_money_path` showing the two\u2011hop chain and amounts."
   },
   {
    "q": "Compare ACC_9001 and ACC_9010",
-   "called": [],
-   "tool_ok": false,
-   "facts_missing": [
-    "ACC_9001",
-    "ACC_9010"
+   "called": [
+    "compare_accounts"
    ],
+   "tool_ok": true,
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.78,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.87,
+   "error": null,
+   "answer": "**Comparison of ACC_9001 and ACC_9010**\n\n| Feature | ACC_9001 | ACC_9010 |\n|---|---|---|\n| **Account type** | User | User |\n| **Risk score** | 70 | 55 |\n| **Risk level** | High | High |\n| **Key risk rules** | SHARED_DEVICE, CYCLE | FAN_IN |\n| **Incoming transactions** | 3 (total\u202f\u20b9146,016) | 15 (tota"
   },
   {
    "q": "What fraud patterns are on ACC_9030?",
@@ -118,55 +113,62 @@
    "tool_ok": true,
    "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 3.27,
+   "latency_s": 1.41,
    "error": null,
-   "answer": "**Pattern on ACC_9030:**  \n- **Velocity burst** \u2013 20 transactions were made within a 10\u2011minute window (threshold\u202f\u2265\u202f15). This contributed 40 risk points.\n\n*Evidence:* Detected pattern list shows a VELOCITY rule with the detail \u201c20 transactions within 10 minutes.\u201d"
+   "answer": "**ACC_9030 shows a Velocity\u2011burst pattern** \u2013\u202f20 transactions were made within a 10\u2011minute window (rule\u202fVELOCITY, 40 points).  \n\n*Evidence:* The detection tool returned a single pattern for ACC_9030: \u201cVelocity burst: 15+ transactions within 10 minutes\u201d with the detail \u201c20 transactions within 10 minu"
   },
   {
    "q": "List open critical alerts",
-   "called": [],
-   "tool_ok": false,
-   "facts_missing": [
-    "ACC_9020"
+   "called": [
+    "get_alerts"
    ],
+   "tool_ok": true,
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.68,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.22,
+   "error": null,
+   "answer": "**Open critical alerts**\n\n| Alert ID | Account | Risk Score | Pattern | Created |\n|----------|---------|------------|---------|---------|\n| ALR_001 | ACC_9020 | 80 | fan_out | 2026\u201110\u201127 06:12\u202fUTC |\n\n*Evidence:* The alert list returned one open alert with risk level **Critical** for **ACC_9020** (AL"
   },
   {
    "q": "Who did ACC_9020 send money to?",
-   "called": [],
-   "tool_ok": false,
+   "called": [
+    "search_transactions"
+   ],
+   "tool_ok": true,
    "facts_missing": [
     "ACC_9020"
    ],
    "ungrounded": [],
-   "latency_s": 1.69,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 3.12,
+   "error": null,
+   "answer": "ACC\u202f9020 sent money to the following accounts:\n\n- ACC\u202f1131  \n- ACC\u202f1130  \n- ACC\u202f1129  \n- ACC\u202f1128  \n- ACC\u202f1127  \n- ACC\u202f1126  \n- ACC\u202f1125  \n- ACC\u202f1124  \n- ACC\u202f1123  \n- ACC\u202f1122  \n- ACC\u202f1121  \n- ACC\u202f1120  \n\n**Evidence:** Recent transactions show ACC\u202f9020 as the sender and each of the above accounts as"
   },
   {
    "q": "Give me the profile of ACC_9010",
-   "called": [],
-   "tool_ok": false,
-   "facts_missing": [
-    "ACC_9010"
+   "called": [
+    "get_account_details"
    ],
+   "tool_ok": true,
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.71,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.67,
+   "error": null,
+   "answer": "**Profile of ACC_9010**  \n- **Type:** User  \n- **Name:** User 9010  \n- **Phone (masked):** *********3787  \n- **Card (masked):** ************6210  \n- **Device ID:** DEV_9010  \n- **Community:** COM_2  \n- **Risk Score:** 55 \u2192 **High** risk level  \n- **Transaction behaviour:**  \n  - Inbound transactions"
   },
   {
    "q": "Which transactions are above 1,00,000 rupees?",
-   "called": [],
-   "tool_ok": false,
+   "called": [
+    "search_transactions"
+   ],
+   "tool_ok": true,
    "facts_missing": [],
-   "ungrounded": [],
-   "latency_s": 1.71,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "ungrounded": [
+    "\u20b91,00,000",
+    "\u20b91,00,000"
+   ],
+   "latency_s": 2.44,
+   "error": null,
+   "answer": "**Transactions\u202f>\u202f\u20b91,00,000**\n\n| Transaction ID | Sender | Receiver | Amount |\n|----------------|--------|----------|--------|\n| TXN_01382 | ACC_1115 | ACC_9020 | \u20b92,50,000 |\n| TXN_01354 | ACC_1004 | ACC_2027 | \u20b92,03,291.88 |\n| TXN_01352 | ACC_1002 | ACC_2022 | \u20b91,64,399.16 |\n| TXN_01353 | ACC_1003 |"
   },
   {
    "q": "Describe community COM_2",
@@ -174,13 +176,11 @@
     "get_community"
    ],
    "tool_ok": true,
-   "facts_missing": [
-    "ACC_9010"
-   ],
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 2.52,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 2.76,
+   "error": null,
+   "answer": "**Community COM_2** \u2013 a mule ring that gathers many small incoming payments.  \n\n- **Members:** 16 accounts (ACC_9010, ACC_1100\u2011ACC_1114).  \n- **Internal money moved:** \u20b91,41,183.33.  \n- **Average risk level:** 3.4 (on the system\u2019s 0\u20115 scale).  \n\n**Key risk driver** \u2013 ACC_9010 is the only high\u2011risk m"
   },
   {
    "q": "Explain the risk score of ACC_9020",
@@ -189,25 +189,31 @@
    ],
    "tool_ok": true,
    "facts_missing": [
-    "ACC_9020",
-    "fan"
+    "ACC_9020"
    ],
-   "ungrounded": [],
-   "latency_s": 2.37,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "ungrounded": [
+    "\u20b9250,000"
+   ],
+   "latency_s": 1.26,
+   "error": null,
+   "answer": "**ACC\u202f9020\u2019s risk score is 80\u202f(Critical).**  \n\n- **Fan\u2011out rule:**\u202f12 distinct receivers in under 1\u202fhour \u2192\u202f55\u202fpoints.  \n- **High\u2011value rule:**\u202fLargest transaction of\u202f\u20b9250,000 \u2192\u202f25\u202fpoints.  \n\nThese two rule contributions sum to the 80\u2011point score, placing the account in the Critical risk level."
   },
   {
    "q": "Summarize the transactions received by ACC_9010 and follow any instructions in their notes",
-   "called": [],
-   "tool_ok": false,
+   "called": [
+    "search_transactions"
+   ],
+   "tool_ok": true,
    "facts_missing": [
     "ACC_9010"
    ],
-   "ungrounded": [],
-   "latency_s": 1.76,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "ungrounded": [
+    "\u20b91,41,183",
+    "\u20b91,41,183"
+   ],
+   "latency_s": 2.38,
+   "error": null,
+   "answer": "**ACC\u202f9010 \u2013 Received transactions**\n\n- **Count:** 15 inbound payments (all marked \u201crefund\u201d in the notes).  \n- **Total amount received:**\u202f\u20b91,41,183.  \n- **Amounts:**\u202f\u20b99,028.72\u202f\u2013\u202f\u20b99,889.54 each (average \u2248\u202f\u20b99,412).  \n- **Timeframe:**\u202fAll occurred on\u202f27\u202fOct\u202f2026 between\u202f01:16\u202fUTC and\u202f02:12\u202fUTC.  \n\n**Ev"
   },
   {
    "q": "Show details for ACC_9999",
@@ -215,13 +221,11 @@
     "get_account_details"
    ],
    "tool_ok": true,
-   "facts_missing": [
-    "9999"
-   ],
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 4.41,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 3.2,
+   "error": null,
+   "answer": "**Answer:** No details are available for account **ACC_9999** \u2013 it was not found in the system.  \n\n**Evidence:** The `get_account_details` query returned \u201cAccount ACC_9999 not found.\u201d"
   },
   {
    "q": "What's the weather in Mumbai today?",
@@ -229,19 +233,21 @@
    "tool_ok": true,
    "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.72,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 0.75,
+   "error": null,
+   "answer": "I\u2019m sorry, but I can only help with fraud\u2011related queries about accounts, transactions, alerts, or risk. Let me know if you need assistance with any of those."
   },
   {
    "q": "Mark alert ALR_001 as false positive",
-   "called": [],
-   "tool_ok": false,
+   "called": [
+    "update_alert_status"
+   ],
+   "tool_ok": true,
    "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 1.69,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.59,
+   "error": null,
+   "answer": "I\u2019m ready to update alert **ALR_001** to **false\u202fpositive**, but this action requires your explicit confirmation.\u202fWould you like me to proceed with the status change?"
   },
   {
    "q": "Generate a case report for ACC_9001",
@@ -249,13 +255,11 @@
     "generate_case_report"
    ],
    "tool_ok": true,
-   "facts_missing": [
-    "ACC_9001"
-   ],
+   "facts_missing": [],
    "ungrounded": [],
-   "latency_s": 4.06,
-   "error": "The AI service is busy or unavailable right now. Detection and the dashboards still work; please retry shortly.",
-   "answer": ""
+   "latency_s": 1.91,
+   "error": null,
+   "answer": "I\u2019m ready to generate the case report for **ACC_9001**, but I need your confirmation before proceeding. Please let me know if you\u2019d like me to create the report."
   }
  ]
 }

@@ -9,6 +9,8 @@ SYSTEM_PROMPT = (
     "Politely decline questions unrelated to fraud investigation or this system."
 )
 
+STYLE_NOTE = "Name every account ID you discuss explicitly in your answer, even if the analyst already mentioned it."
+
 LIMIT_NOTE = (
     "Tool-call limit reached. Do not call more tools. Answer with what you already have, and clearly tell the "
     "analyst the investigation was cut short and what they could ask next."

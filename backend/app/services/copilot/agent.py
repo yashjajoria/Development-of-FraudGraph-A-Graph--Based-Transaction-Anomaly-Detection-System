@@ -7,7 +7,7 @@ import re
 import time
 from collections.abc import AsyncIterator, Callable
 
-from app.services.copilot.prompts import LIMIT_NOTE, SYSTEM_PROMPT
+from app.services.copilot.prompts import LIMIT_NOTE, STYLE_NOTE, SYSTEM_PROMPT
 from app.services.copilot.tools import ConfirmationRequired, registry
 from app.services.llm import LLMError, Message, ProviderUnavailableError, RateLimitError, TextDelta, ToolCall
 
@@ -108,7 +108,7 @@ class CopilotAgent:
 
     async def run(self, history: list[dict], question: str, context: dict | None = None, user: str = "anon",
                   create_action: Callable | None = None) -> AsyncIterator[dict]:
-        system = SYSTEM_PROMPT + ("\n\n" + context_note(context) if context_note(context) else "")
+        system = SYSTEM_PROMPT + " " + STYLE_NOTE + ("\n\n" + context_note(context) if context_note(context) else "")
         msgs = [Message("system", system), *build_memory(history), Message("user", question)]
         nodes: list[str] = []
         table = chart = None
