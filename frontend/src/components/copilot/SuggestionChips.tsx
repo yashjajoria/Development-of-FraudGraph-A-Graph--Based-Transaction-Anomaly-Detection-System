@@ -7,7 +7,7 @@ export function SuggestionChips({ ctx, onPick }: { ctx: PageContext | null; onPi
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {(data?.suggestions ?? []).map((q) => (
-        <button key={q} onClick={() => onPick(q)} className="rounded-full border border-line bg-card px-3 py-1 text-xs hover:border-accent hover:text-accent">{q}</button>
+        <button key={q} onClick={() => onPick(q)} className="rounded-full border border-line bg-card px-3.5 py-1.5 text-xs hover:border-accent hover:text-accent">{q}</button>
       ))}
     </div>
   );

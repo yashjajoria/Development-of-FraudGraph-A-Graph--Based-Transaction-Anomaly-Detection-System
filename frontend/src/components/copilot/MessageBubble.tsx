@@ -22,7 +22,7 @@ export function MessageBubble({ m, onRetry }: { m: ChatMessage; onRetry: (m: Cha
   const setOpen = useCopilotStore((s) => s.setOpen);
 
   if (m.role === "user")
-    return <div className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-accent px-3 py-2 text-sm text-white">{m.content}</div>;
+    return <div className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-3xl rounded-br-md bg-accent px-3 py-2 text-sm text-white">{m.content}</div>;
 
   const rate = (r: "up" | "down", c?: string) => {
     patch(m.id, (x) => ({ ...x, feedback: r }));
@@ -32,7 +32,7 @@ export function MessageBubble({ m, onRetry }: { m: ChatMessage; onRetry: (m: Cha
   return (
     <div className="group flex gap-2">
       <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-accent-2"><Sparkles size={14} className="text-white" /></div>
-      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-line bg-card px-3 py-2 text-sm">
+      <div className="min-w-0 flex-1 rounded-3xl rounded-tl-md border border-line bg-card px-3 py-2 text-sm">
         <ToolTrace tools={m.tools} streaming={m.streaming} />
         <div className="md break-words">
           <ReactMarkdown remarkPlugins={[remarkGfm]} urlTransform={(u) => (u.startsWith("node:") ? u : defaultUrlTransform(u))}

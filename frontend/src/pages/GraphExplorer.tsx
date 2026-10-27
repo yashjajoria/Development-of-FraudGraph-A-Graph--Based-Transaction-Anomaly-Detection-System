@@ -15,7 +15,7 @@ export function GraphExplorer() {
   useEffect(() => { setContext({ page: "graph", account_id: sel, selected_nodes: sel ? [sel] : [] }); }, [sel, setContext]);
   if (!data) return <div className="p-6 text-muted">Loading graph…</div>;
   return (
-    <div className="relative h-full">
+    <div className="relative h-full min-h-[480px] overflow-hidden rounded-3xl border border-line bg-card">
       <GraphView data={data} highlighted={highlighted} onSelect={setSel} />
       {highlighted.length > 0 && (
         <button onClick={() => setHighlighted([])} className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-accent bg-card px-3 py-1 text-xs"><X size={12} /> Clear highlight ({highlighted.length})</button>

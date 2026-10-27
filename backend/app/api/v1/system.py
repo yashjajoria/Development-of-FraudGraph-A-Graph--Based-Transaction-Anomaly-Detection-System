@@ -27,7 +27,9 @@ def account(account_id: str, _: User = Depends(current_user)):
     r = registry.run("get_account_details", {"account_id": account_id})
     if r["data"] is None:
         raise HTTPException(404, r["summary"])
-    return {**r["data"], "explanation": registry.run("get_risk_explanation", {"account_id": account_id})["data"]}
+    nb = registry.run("get_neighbors", {"account_id": account_id, "depth": 1})["data"][:5]
+    return {**r["data"], "neighbors": nb,
+            "explanation": registry.run("get_risk_explanation", {"account_id": account_id})["data"]}
 
 
 @router.get("/graph")

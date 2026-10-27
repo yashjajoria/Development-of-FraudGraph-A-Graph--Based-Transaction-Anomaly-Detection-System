@@ -72,5 +72,6 @@ export interface AccountDetail extends AccountSummary {
   name: string; phone: string; card: string; device_id: string; community_id: string | null;
   features: Record<string, number>;
   alerts: string[];
+  neighbors: { account_id: string; total_amount: number; txn_count: number; risk_level: RiskLevel }[];
   explanation: { contributions: { rule: string; name: string; points: number; reason: string }[] };
 }

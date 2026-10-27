@@ -12,7 +12,7 @@ export function CopilotPanel() {
     <AnimatePresence>
       {open && (
         <motion.aside initial={{ x: 440 }} animate={{ x: 0 }} exit={{ x: 440 }} transition={{ type: "spring", stiffness: 320, damping: 32 }}
-          className="fixed inset-y-0 right-0 z-50 flex w-full flex-col border-l border-line bg-bg shadow-2xl sm:w-[420px]" aria-label="FraudGraph Copilot">
+          className="fixed inset-0 z-50 flex flex-col bg-bg shadow-2xl sm:inset-y-3 sm:left-auto sm:right-3 sm:w-[420px] sm:rounded-3xl sm:border sm:border-line" aria-label="FraudGraph Copilot">
           <header className="border-b border-line p-3">
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-accent" /><b>FraudGraph Copilot</b>

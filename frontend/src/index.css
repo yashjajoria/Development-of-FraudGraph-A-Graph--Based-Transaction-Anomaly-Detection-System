@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root { /* light */
-  --bg: 248 250 252; --card: 255 255 255; --line: 226 232 240; --fg: 15 23 42; --muted: 100 116 139;
+  --bg: 238 241 247; --card: 255 255 255; --line: 226 232 240; --fg: 15 23 42; --muted: 100 116 139;
 }
 .dark { /* dark-first: #0B1120 / #111827 / #1F2937 */
-  --bg: 11 17 32; --card: 17 24 39; --line: 31 41 55; --fg: 226 232 240; --muted: 148 163 184;
+  --bg: 9 9 11; --card: 19 19 23; --line: 40 40 48; --fg: 226 232 240; --muted: 148 163 184;
 }
 body { @apply bg-bg text-fg font-sans antialiased; }
 .scroll-thin::-webkit-scrollbar { width: 6px; }
