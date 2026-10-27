@@ -139,6 +139,18 @@ class GraphStore:
             found.append(("HIGH_VALUE", f"largest transaction ₹{big:,.0f}"))
         return [{"rule": k, "name": RULES[k][0], "detail": d, "points": RULES[k][1]} for k, d in found]
 
+    def add_account(self, a: dict) -> None:
+        """Add an account at runtime (admin-created). It starts with no transactions, so risk is 0 unless
+        it shares a device. ponytail: other accounts on the same device are not re-scored."""
+        self.accounts[a["id"]] = {"community_id": None, **a}
+        self.G.add_node(a["id"])
+        self.D.add_node(a["id"])
+        self.by_device.setdefault(a["device_id"], []).append(a["id"])
+        rules = self.patterns(a["id"])
+        score = min(100, sum(r["points"] for r in rules))
+        self.risk[a["id"]] = {"score": score, "level": level(score), "rules": rules}
+        self.features[a["id"]] = self._features(a["id"])
+
     def _features(self, a):
         ins = [d["amount"] for _, _, d in self.G.in_edges(a, data=True)]
         outs = [d["amount"] for _, _, d in self.G.out_edges(a, data=True)]

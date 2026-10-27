@@ -1,9 +1,10 @@
-import { Bell, LayoutDashboard, LogOut, Network, Search, Sparkles, Sun } from "lucide-react";
+import { Bell, LayoutDashboard, LogOut, Network, Search, Sparkles, Sun, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { CopilotLauncher } from "@/components/copilot/CopilotLauncher";
 import { CopilotPage } from "@/components/copilot/CopilotPage";
 import { CopilotPanel } from "@/components/copilot/CopilotPanel";
+import { AdminAccounts } from "@/pages/AdminAccounts";
 import { Dashboard } from "@/pages/Dashboard";
 import { GraphExplorer } from "@/pages/GraphExplorer";
 import { Investigation } from "@/pages/Investigation";
@@ -12,6 +13,7 @@ import { useAuth } from "@/store/authStore";
 import { useCopilotStore } from "@/store/copilotStore";
 
 const nav = [["/", "Dashboard", LayoutDashboard], ["/investigate", "Investigation", Search], ["/graph", "Graph Explorer", Network], ["/copilot", "AI Copilot", Sparkles]] as const;
+const adminNav = ["/admin/accounts", "Add account", UserPlus] as const;
 
 /** Keeps the Copilot's page context in sync with the route (the Graph page manages its own selection). */
 function ContextSync() {
@@ -30,7 +32,7 @@ function TopBar() {
   const { pathname } = useLocation();
   const go = useNavigate();
   const [q, setQ] = useState("");
-  const title = pathname.startsWith("/accounts") ? "Account investigation" : (nav.find(([to]) => to === pathname)?.[1] ?? "FraudGraph AI");
+  const title = pathname.startsWith("/accounts") ? "Account investigation" : pathname.startsWith("/admin") ? "Add account" : (nav.find(([to]) => to === pathname)?.[1] ?? "FraudGraph AI");
   return (
     <header className="flex h-16 shrink-0 items-center gap-3 rounded-3xl border border-line bg-card px-5">
       <h1 className="font-semibold">{title}</h1>
@@ -50,15 +52,16 @@ function TopBar() {
 }
 
 export default function App() {
-  const { token, logout } = useAuth();
+  const { token, logout, role } = useAuth();
   const { pathname } = useLocation();
+  const items = role === "admin" ? [...nav, adminNav] : nav;
   if (!token) return <Login />;
   return (
     <div className="flex h-screen gap-3 p-3">
       <ContextSync />
       <nav className="hidden w-[68px] shrink-0 flex-col items-center gap-2 rounded-3xl border border-line bg-card py-4 md:flex">
         <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-accent to-accent-2"><Network size={18} className="text-white" /></div>
-        {nav.map(([to, label, Icon]) => (
+        {items.map(([to, label, Icon]) => (
           <NavLink key={to} to={to} end={to === "/"} title={label} aria-label={label}
             className={({ isActive }) => `flex h-11 w-11 items-center justify-center rounded-2xl transition ${isActive ? "bg-accent text-white shadow-glow" : "text-muted hover:bg-bg hover:text-fg"}`}><Icon size={18} /></NavLink>
         ))}
@@ -72,6 +75,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/investigate" element={<Investigation />} />
             <Route path="/accounts/:id" element={<Investigation />} />
+            <Route path="/admin/accounts" element={role === "admin" ? <AdminAccounts /> : <Navigate to="/" />} />
             <Route path="/graph" element={<GraphExplorer />} />
             <Route path="/copilot" element={<div className="h-full overflow-hidden rounded-3xl border border-line bg-card"><CopilotPage /></div>} />
             <Route path="*" element={<Navigate to="/" />} />

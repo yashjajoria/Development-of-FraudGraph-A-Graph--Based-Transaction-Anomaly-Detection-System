@@ -10,7 +10,8 @@ from sqlalchemy import text
 from app.api.v1 import auth, copilot, system
 from app.core.config import settings
 from app.core.db import Base, engine
-from app.models import copilot as _models  # noqa: F401  (registers tables)
+from app.core.db import SessionLocal
+from app.models import account as _acct_model, copilot as _models  # noqa: F401  (registers tables)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
@@ -18,6 +19,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s
 @asynccontextmanager
 async def lifespan(_):
     Base.metadata.create_all(engine)
+    with SessionLocal() as db:
+        system.load_managed_accounts(db)
     yield
 
 

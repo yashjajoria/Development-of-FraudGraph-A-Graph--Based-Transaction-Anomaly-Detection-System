@@ -146,3 +146,26 @@ def test_llm_failure_is_graceful_error_event(client):
         b.RETRIES = old
     ev = events(r)
     assert r.status_code == 200 and ev[-1][0] == "error" and ev[-1][1]["retryable"] is True
+
+
+def test_admin_creates_account_visible_everywhere(client):
+    body = {"type": "user", "name": "New Customer", "phone": "+919876543210", "card": "4111111111111111"}
+    for role in ("analyst", "viewer"):
+        assert client.post("/api/v1/accounts", headers=auth(client, role), json=body).status_code == 403
+    h = auth(client, "admin")
+    assert client.post("/api/v1/accounts", headers=h, json={**body, "card": "123"}).status_code == 422
+    r = client.post("/api/v1/accounts", headers=h, json=body)
+    assert r.status_code == 201
+    a = r.json()
+    assert int(a["id"][4:]) >= 10000 and a["risk_level"] == "Low" and a["card"].endswith("1111") and "4111111111111111" not in str(a)
+    assert client.get(f"/api/v1/accounts/{a['id']}", headers=h).json()["name"] == "New Customer"
+    assert client.get(f"/api/v1/accounts/search?q={a['id'][4:]}", headers=h).json()[0]["id"] == a["id"]
+    from app.services.copilot.tools import registry
+    assert registry.run("get_account_details", {"account_id": a["id"]})["data"]["type"] == "user"  # AI tools see it
+    from app.api.v1 import system
+    from app.core.db import SessionLocal
+    from app.services.copilot.data import get_store
+    del get_store().accounts[a["id"]]  # simulate restart: reload from DB
+    with SessionLocal() as db:
+        assert system.load_managed_accounts(db) >= 1
+    assert a["id"] in get_store().accounts

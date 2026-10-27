@@ -29,3 +29,6 @@ export interface GraphData {
   edges: { source: string; target: string; amount: number; count: number }[];
 }
 export const getGraph = (ids?: string[]) => api<GraphData>(`/graph${ids ? `?ids=${ids.join(",")}` : ""}`);
+
+export interface NewAccount { type: "user" | "merchant"; name: string; phone?: string; card?: string; device_id?: string }
+export const createAccount = (b: NewAccount) => api<AccountDetail>("/accounts", { method: "POST", body: JSON.stringify(b) });
