@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy import text
 
-from app.api.v1 import auth, copilot, system
+from app.api.v1 import auth, copilot, imports, system
 from app.core.config import settings
 from app.core.db import Base, engine
 from app.core.db import SessionLocal
@@ -21,13 +21,14 @@ async def lifespan(_):
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
         system.load_managed_accounts(db)
+        system.load_managed_transactions(db)
     yield
 
 
 app = FastAPI(title="FraudGraph AI", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins.split(","), allow_methods=["*"],
                    allow_headers=["*"])
-for r in (auth.router, copilot.router, system.router):
+for r in (auth.router, copilot.router, system.router, imports.router):
     app.include_router(r, prefix="/api/v1")
 
 

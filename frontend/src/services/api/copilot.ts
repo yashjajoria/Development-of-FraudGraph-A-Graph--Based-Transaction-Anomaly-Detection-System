@@ -32,3 +32,6 @@ export const getGraph = (ids?: string[]) => api<GraphData>(`/graph${ids ? `?ids=
 
 export interface NewAccount { type: "user" | "merchant"; name: string; phone?: string; card?: string; device_id?: string }
 export const createAccount = (b: NewAccount) => api<AccountDetail>("/accounts", { method: "POST", body: JSON.stringify(b) });
+
+export const importCsv = (kind: "accounts" | "transactions", csv: string) =>
+  api<{ imported: number; account_ids?: string[]; newly_flagged?: string[]; total_alerts?: number }>(`/import/${kind}`, { method: "POST", body: JSON.stringify({ csv }) });

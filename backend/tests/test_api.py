@@ -169,3 +169,26 @@ def test_admin_creates_account_visible_everywhere(client):
     with SessionLocal() as db:
         assert system.load_managed_accounts(db) >= 1
     assert a["id"] in get_store().accounts
+
+
+def test_csv_import_detects_new_fraud_and_validates(client):
+    from app.services.copilot.data import get_store
+    h = auth(client, "admin")
+    ac = "type,name\nuser,Ring A\nuser,Ring B\nuser,Ring C\n"
+    assert client.post("/api/v1/import/accounts", headers=auth(client, "analyst"), json={"csv": ac}).status_code == 403
+    assert client.post("/api/v1/import/accounts", headers=h, json={"csv": "type,name\nplanet,X\n"}).status_code == 422
+    ids = client.post("/api/v1/import/accounts", headers=h, json={"csv": ac}).json()["account_ids"]
+    assert len(ids) == 3 and get_store().risk[ids[0]]["score"] == 0  # no transactions yet -> nothing to detect
+    a, b, c = ids
+    bad = f"sender_id,receiver_id,amount,timestamp\n{a},{b},5000,2026-10-01T10:00:00\n{a},ACC_NOPE,5,2026-10-01\n{b},{b},5,2026-10-01\n"
+    r = client.post("/api/v1/import/transactions", headers=h, json={"csv": bad})
+    assert r.status_code == 422 and "Row 3" in str(r.json()) and "Row 4" in str(r.json())
+    n_tx = len(get_store().txns)
+    good = "sender_id,receiver_id,amount,timestamp,note\n" + "".join(
+        f"{x},{y},{amt},2026-10-01T10:0{i}:00,loop\n" for i, (x, y, amt) in enumerate([(a, b, 9000), (b, c, 8900), (c, a, 8800)]))
+    r = client.post("/api/v1/import/transactions", headers=h, json={"csv": good}).json()
+    assert r["imported"] == 3 and set(ids) <= set(r["newly_flagged"])
+    assert len(get_store().txns) == n_tx + 3
+    d = client.get(f"/api/v1/accounts/{a}", headers=h).json()
+    assert d["risk_score"] >= 45 and d["risk_level"] == "Medium" and d["explanation"]["contributions"][0]["rule"] == "CYCLE"
+    assert any(x["account_id"] == a for x in get_store().alerts.values())

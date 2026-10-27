@@ -38,24 +38,52 @@ class GraphStore:
         self._build(random.Random(seed))
         self.G, self.D = nx.MultiDiGraph(), nx.DiGraph()  # D = aggregated flows per (sender, receiver)
         for t in self.txns:
-            self.G.add_edge(t["sender"], t["receiver"], id=t["id"], amount=t["amount"], ts=t["ts"])
-            if self.D.has_edge(t["sender"], t["receiver"]):
-                self.D[t["sender"]][t["receiver"]]["amount"] += t["amount"]
-                self.D[t["sender"]][t["receiver"]]["count"] += 1
-            else:
-                self.D.add_edge(t["sender"], t["receiver"], amount=t["amount"], count=1)
-        self.cycles = list(nx.simple_cycles(self.D, length_bound=5))
-        self.cycle_nodes = {n for c in self.cycles for n in c}
+            self._add_edge(t)
         self.by_device = {}
         for a in self.accounts.values():
             self.by_device.setdefault(a["device_id"], []).append(a["id"])
+        self.rescore()
+        self._make_alerts()
+
+    def _add_edge(self, t):
+        self.G.add_edge(t["sender"], t["receiver"], id=t["id"], amount=t["amount"], ts=t["ts"])
+        if self.D.has_edge(t["sender"], t["receiver"]):
+            self.D[t["sender"]][t["receiver"]]["amount"] += t["amount"]
+            self.D[t["sender"]][t["receiver"]]["count"] += 1
+        else:
+            self.D.add_edge(t["sender"], t["receiver"], amount=t["amount"], count=1)
+
+    def rescore(self):
+        """Recompute cycles, per-account rules/risk and features from the current graph."""
+        self.cycles = list(nx.simple_cycles(self.D, length_bound=5))
+        self.cycle_nodes = {n for c in self.cycles for n in c}
         self.risk = {}
         for a in self.accounts:
             rules = self.patterns(a)
             score = min(100, sum(r["points"] for r in rules))
             self.risk[a] = {"score": score, "level": level(score), "rules": rules}
         self.features = {a: self._features(a) for a in self.accounts}
-        self._make_alerts()
+
+    def add_transactions(self, rows: list[dict]) -> None:
+        """rows: dicts with sender, receiver, amount, ts (aware datetime), note. Rescores everything and opens
+        alerts for newly flagged accounts. ponytail: full rescore is O(accounts); fine below ~50k accounts."""
+        for r in rows:
+            t = {**r, "id": f"TXN_{len(self.txns) + 1:05d}"}
+            self.txns.append(t)
+            self._add_edge(t)
+        self.rescore()
+        self.sync_alerts()
+
+    def sync_alerts(self):
+        have = {a["account_id"] for a in self.alerts.values()}
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        for a, r in sorted(self.risk.items(), key=lambda x: -x[1]["score"]):
+            if r["score"] >= 25 and a not in have:
+                i = len(self.alerts) + 1
+                top = max(r["rules"], key=lambda x: x["points"])
+                self.alerts[f"ALR_{i:03d}"] = {"id": f"ALR_{i:03d}", "account_id": a, "risk_level": r["level"],
+                                               "risk_score": r["score"], "pattern_type": top["rule"].lower(),
+                                               "status": "open", "created_at": now, "notes": []}
 
     # ---- dataset -------------------------------------------------------
     def _build(self, rng):

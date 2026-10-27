@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.security import User, current_user, require_roles
-from app.models.account import ManagedAccount
+from datetime import timezone
+
+from app.models.account import ManagedAccount, ManagedTransaction
 from app.services.copilot.data import get_store
 from app.services.copilot.tools import registry
 from app.services.copilot.tools.read import mask
@@ -69,16 +71,21 @@ class NewAccount(BaseModel):
 @router.post("/accounts", status_code=201)
 def create_account(body: NewAccount, user: User = Depends(require_roles("admin")), db: Session = Depends(get_db)):
     """Admin only. Saves to Neon (masked PII) and adds the account to the live graph store."""
+    return account(create_account_row(body, user.username, db), user)
+
+
+def create_account_row(body: NewAccount, username: str, db: Session, commit: bool = True) -> str:
     s = get_store()
     n = max([int(i[4:]) for i in s.accounts if int(i[4:]) >= 10000] or [9999]) + 1
     aid = f"ACC_{n}"
     row = ManagedAccount(id=aid, type=body.type, name=body.name.strip(), phone=mask(body.phone) if body.phone else "",
                          card=mask(body.card) if body.card else "", device_id=body.device_id or f"DEV_{n}",
-                         created_by=user.username)
+                         created_by=username)
     db.add(row)
-    db.commit()
+    if commit:
+        db.commit()
     s.add_account(_row_dict(row))
-    return account(aid, user)
+    return aid
 
 
 def _row_dict(r: ManagedAccount) -> dict:
@@ -92,4 +99,13 @@ def load_managed_accounts(db: Session) -> int:
     for r in rows:
         if r.id not in s.accounts:
             s.add_account(_row_dict(r))
+    return len(rows)
+
+
+def load_managed_transactions(db: Session) -> int:
+    rows = db.query(ManagedTransaction).order_by(ManagedTransaction.id).all()
+    if rows:
+        get_store().add_transactions([{"sender": r.sender, "receiver": r.receiver, "amount": r.amount,
+                                       "ts": r.ts if r.ts.tzinfo else r.ts.replace(tzinfo=timezone.utc), "note": r.note}
+                                      for r in rows])
     return len(rows)

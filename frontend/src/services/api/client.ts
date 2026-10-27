@@ -19,7 +19,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (res.status === 401 && !path.startsWith("/auth/login")) useAuth.getState().logout();
   if (!res.ok) {
     let msg = res.statusText;
-    try { const j = await res.json(); msg = typeof j.detail === "string" ? j.detail : msg; } catch { /* no body */ }
+    try { const j = await res.json(); msg = typeof j.detail === "string" ? j.detail : Array.isArray(j.detail?.errors) ? j.detail.errors.join("\n") : msg; } catch { /* no body */ }
     throw new ApiError(res.status, msg);
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
