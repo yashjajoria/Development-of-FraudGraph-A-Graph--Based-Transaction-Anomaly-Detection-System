@@ -76,3 +76,16 @@ async def test_groq_live_tool_call():
     evs = [e async for e in get_provider("groq").generate(msgs, [TOOL])]
     calls = [e for e in evs if isinstance(e, ToolCall)]
     assert calls and calls[0].name == "get_account_details" and "ACC_1023" in calls[0].args["account_id"]
+
+
+async def test_retry_honours_retry_after(monkeypatch):
+    waits = []
+
+    async def rec(s): waits.append(s)
+    monkeypatch.setattr(base.asyncio, "sleep", rec)
+    p = Flaky(1, lambda m: RateLimitError(m, retry_after=12))
+    await collect(p)
+    assert waits == [12]
+    waits.clear()
+    await collect(Flaky(1, lambda m: RateLimitError(m, retry_after=999)))
+    assert waits == [base.MAX_RETRY_WAIT]  # capped

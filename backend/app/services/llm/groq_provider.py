@@ -58,7 +58,8 @@ class GroqProvider(LLMProvider):
                         c["args"] += tc.function.arguments or ""
                 reason = ch.finish_reason or reason
         except groq.RateLimitError as e:
-            raise RateLimitError(str(e)) from e
+            ra = e.response.headers.get("retry-after")
+            raise RateLimitError(str(e), float(ra) if ra and ra.replace(".", "").isdigit() else None) from e
         except (groq.APIConnectionError, groq.APITimeoutError) as e:
             raise ProviderUnavailableError(str(e)) from e
         except groq.APIStatusError as e:

@@ -11,7 +11,9 @@ class LLMError(Exception):
 
 
 class RateLimitError(LLMError):
-    pass
+    def __init__(self, msg: str = "", retry_after: float | None = None):
+        super().__init__(msg)
+        self.retry_after = retry_after  # seconds the provider asked us to wait
 
 
 class ProviderUnavailableError(LLMError):
@@ -54,6 +56,7 @@ class Done:
 LLMEvent = TextDelta | ToolCall | Done
 
 RETRIES = 2
+MAX_RETRY_WAIT = 30.0
 
 
 class LLMProvider(ABC):
@@ -80,7 +83,10 @@ class LLMProvider(ABC):
                         yield TextDelta("".join(text))
                     yield ev
                 return
-            except (RateLimitError, ProviderUnavailableError):
+            except (RateLimitError, ProviderUnavailableError) as e:
                 if started or attempt == RETRIES:
                     raise
-                await asyncio.sleep(0.5 * 2**attempt)
+                wait = 0.5 * 2**attempt
+                if isinstance(e, RateLimitError) and e.retry_after:
+                    wait = max(wait, min(e.retry_after, MAX_RETRY_WAIT))  # honour the hint, but never hang the UI
+                await asyncio.sleep(wait)
